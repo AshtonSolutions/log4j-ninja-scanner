@@ -16,7 +16,7 @@ PULL REQUESTS WELCOME! Bug fixes, performance improvements, function extensions 
 # Functions & Features
 
 * Compatible with Server 2008 and up, 32 or 64-bit *Note, not tested on 32-bit*
-* Automatically scans JAR, WAR, EAR, and AAR files for reference to the vunerable package `JndiLookup.class`. Scans those file types plus LOG and TXT files using the [yara](https://github.com/VirusTotal/yara)
+* Automatically scans JAR, WAR, EAR, and AAR files for reference to the vunerable package `JndiLookup.class`. Scans those file types plus LOG and TXT files using the [yara](https://github.com/VirusTotal/yara) malware scan tool.
 * If yara is unable to run, attempts to detect and if necessary install the Visual C++ Runtime prerequisite. *Note: this can be disabled if undesired*
 * Runs a log of all files scanned as well as a PowerShell Transcript log for later review
 * Handles failures and errors in a mostly sane manner, attempting to report back if at all possible or at least log the problem in the Transcript.
