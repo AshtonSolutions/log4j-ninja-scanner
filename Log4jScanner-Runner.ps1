@@ -99,7 +99,28 @@ Write-Host $rawScriptUri -Foreground DarkYellow -NoNewline
 Write-Host " to " -NoNewline
 Write-Host $downloadPath -Foreground DarkCyan
 
+# Build a splat to pass parameters on
+$ParamSplat = @{
+    'ScanScope' = $ScanScope
+    'Root' = $Root
+    'LogTo' = $LogTo
+    'InstallVCCIfneeded' = $InstallVCCIfneeded
+    'FilterSyncRootsFromUserProfile' = $FilterSyncRootsFromUserProfile
+    'ExcludedPaths' = $ExcludedPaths
+    'MailSMTPServer' = $MailSMTPServer
+    'MailPort' = $MailPort
+    'MailUseSSL' = $MailUseSSL
+    'MailFrom' = $MailFrom
+    'MailTo' = $MailTo
+    'SendOnSuccess' = $SendOnSuccess
+}
+if ($ExcludedPaths) { $ParamSplat.ExcludedPaths = $ExcludedPaths }
+if ($NinjaProperty) { $ParamSplat.NinjaProperty = $NinjaProperty }
+if ($MailServerCredential) { $ParamSplat.MailServerCredential = $MailServerCredential }
+if ($MailServerUsername) { $ParamSplat.MailServerUsername = $MailServerUsername }
+if ($MailServerPasswordPlaintext) { $ParamSplat.MailServerPasswordPlaintext = $MailServerPasswordPlaintext }
+
 # Finally, run the script
 Write-Host "Attempting to execute $downloadPath"
 # Re-splat the parameters
-Invoke-Expression -Command "$downloadPath @PSBoundParameters" 
+Invoke-Expression -Command "$downloadPath @ParamSplat" 
