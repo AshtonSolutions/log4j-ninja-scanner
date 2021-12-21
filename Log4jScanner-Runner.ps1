@@ -73,7 +73,7 @@ param (
 
 # Download the latest version of the script
 $rawScriptUri     = 'https://raw.githubusercontent.com/AshtonSolutions/log4j-ninja-scanner/main/Log4JScanner.ps1'
-$downloadFolder   = $env:temp
+$downloadFolder   = 'C:\temp'
 $downloadFileName = 'Log4JScanner.ps1'
 $downloadPath =  "$downloadFolder\$downloadFileName"
 
