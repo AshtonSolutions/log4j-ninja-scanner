@@ -293,6 +293,7 @@ if (-not (Test-Path -Path "$Root\yara$arch.exe" -PathType Leaf)) {
     }
 }
 #endregion
+
 #region ------------------------ EXECUTION: FILE COLLECTION ---------------------------
 #map input variable ScanScope to an actual value
 switch ($ScanScope) {
@@ -323,8 +324,9 @@ Add-Content $DETECTIONFILE_PATH -Value " :: Scan Started: $(get-date) ::"
 Write-Host (Get-Date -f 'MM/dd HH:mm:ss') "File scan start"
 $arrFiles = [System.Collections.ArrayList]@()
 foreach ($drive in $ScanDrives) {
-    Get-ChildItem "$drive\" -force | Where-Object {$_.PSIsContainer} | Foreach-Object {
-            Get-ChildItem -path "$drive\$_\" -rec -force -include *.jar,*.war,*.ear,*.aar,*.log,*.txt -ErrorAction 0 | Foreach-Object {
+    #Get-ChildItem "$drive\" -force | Where-Object {$_.PSIsContainer} | Foreach-Object {
+    Get-ChildItem "$drive\Program Files\" -force | Where-Object {$_.PSIsContainer} | Foreach-Object {
+            Get-ChildItem -path "$drive\Program Files\$_\" -rec -force -include *.jar,*.war,*.ear,*.aar,*.log,*.txt -ErrorAction 0 | Foreach-Object {
             $arrFiles.Add($_.FullName) | Out-Null
         }
     }
@@ -380,7 +382,9 @@ if ($ResultCode -in (3,4)) {
 Write-Host "=====================================================" -ForegroundColor Magenta
 Write-Host "- Scanning LOGs, TXTs and JARs for common attack strings via YARA scan......" -ForegroundColor Magenta
 $yaraScanLog = "$LogTo\$fileDate Yara Scan Log.txt"
+Write-host "REsult code is currently: $ResultCode"
 foreach ($file in $arrFiles) {
+    "loopstart $ResultCode"
     #add it to the logfile, with a pause for handling
     try {
         Add-Content -Path $yaraScanLog -Value $file -ErrorAction Stop
@@ -388,19 +392,20 @@ foreach ($file in $arrFiles) {
         Start-Sleep -Seconds 1
         Add-Content -Path $yaraScanLog -Value $file -ErrorAction SilentlyContinue
     }
-
     #scan it
     Clear-Variable -Name yaResult -ErrorAction SilentlyContinue
     try {
         $yaResult = cmd /c "$Root\yara$arch.exe `"yara.yar`" `"$file`" -s" # Executes yara and waits for it to return
         if ($yaResult) {
+            "yaresult"
             Write-Host "=====================================================" -ForegroundColor Red
             Write-Host "! DETECTION:" -ForegroundColor Red
             Write-Host $yaResult -ForegroundColor Cyan
-            Add-Content -Path $DETECTIONFILE_PATH -Value "! INFECTION DETECTION !`r`n$(get-date)"}
+            Add-Content -Path $DETECTIONFILE_PATH -Value "! INFECTION DETECTION !`r`n$(get-date)"
             Add-Content -Path $DETECTIONFILE_PATH -Value $yaResult
             $ResultCode = 5
-        }
+        } 
+    }
     catch { 
         Write-Host "Error: " $_.toString() -ForegroundColor DarkRed 
         Add-Content -Path $DETECTIONFILE_PATH -Value "----------------------------------------------------`nError scanning $file with yara. Check Transcript log`n---------------------------------------"
