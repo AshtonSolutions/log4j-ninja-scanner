@@ -122,6 +122,21 @@ Write-Host "====================================================================
 Write-Host "Detections from this run will be logged to $DETECTIONFILE_PATH" -ForegroundColor DarkYellow
 Write-Host "Script Version: $version"  -ForegroundColor DarkYellow
 Write-Host "Current Path: " (Get-Location | Select-Object -ExpandProperty Path) -ForegroundColor DarkYellow
+Write-Host "Parameters for this run:" -ForegroundColor Yellow
+Write-Host "`tScanScope: $ScanScope"
+Write-Host "`tRoot: $Root"
+Write-Host "`tLogTo: $LogTo"
+Write-Host "`tInstallVCCIfneeded: $InstallVCCIfneeded"
+Write-Host "`tFilterSyncRootsFromUserProfile: $FilterSyncRootsFromUserProfile"
+Write-Host "`tExcludedPaths: " ($ExcludedPaths | Out-String)
+Write-Host "`tNinjaProperty": $NinjaProperty
+Write-Host "`tMailSMTPServer: $MailSMTPServer"
+Write-Host "`tMailPort: $MailPort"
+Write-Host "`tMailUseSSL: $MailUseSSL"
+Write-Host "Mail credential information skipped for security reasons."
+Write-host "`tMailFrom: $MailFrom"
+Write-Host "`tMailTo: $MailTo"
+Write-Host "`tSendOnSuccess: $SendOnSuccess"
 
 # Force TLS 1.2 for downloading files
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
@@ -150,20 +165,20 @@ function Send-Result {
     } elseif ($ResultCode -eq 1) { # Success, Potentially vunerable files found
             $_message = '! The scan succeeded. One or more potentially vunerable files was found. No evidence of an attack attempt was identified.' 
             Write-Host $_message -ForegroundColor Blue
-            $mail.Subject = "Log4j VULN FOUND: $serverdomain\$servername"
+            $mail.Subject = "Log4j VULN FOUND: $_serverDomain\$_serverName"
             $mail.Body = $_bodyBase + "$_message`nSee below log data for more information. Scan Version: $version`n`n" + (Get-Content $DETECTIONFILE_PATH)
             $mail.Attachments = $DETECTIONFILE_PATH
             $ninjaString = "$((Get-Date).ToString()) VULN FOUND"
     } elseif ($ResultCode -eq 3) { # File scan came back clean but yara was unable to run
             $_message = '! file scan returned clear, however yara was not able to run. Manual intervention required to review log files.'
             Write-Host $_message -ForegroundColor DarkRed
-            $mail.Subject = "Log4j SCAN-CLEAN YARA-ERROR: $serverdomain\$servername"
+            $mail.Subject = "Log4j SCAN-CLEAN YARA-ERROR: $_serverDomain\$_serverName"
             $mail.Body = $_bodyBase + "$_message`nScript run transcript is below. Scan Version: $version`n`n" + (Get-Content $TRANSCRIPT_PATH)
             $ninjaString = "$((Get-Date).ToString()) SCAN-CLEAN YARA-ERROR"
     } elseif ($ResultCode -eq 4) { # File scan found potentially vunerable files, yara was unable to run
             $_message = '! File scan identified potentially vunerable files. Yara was not able to run. Manual intervention may be required to review log files.'
             Write-Host $_message -ForegroundColor DarkRed
-            $mail.Subject = "Log4j VULN FOUND YARA-ERROR: $serverdomain\$servername"
+            $mail.Subject = "Log4j VULN FOUND YARA-ERROR: $_serverDomain\$_serverName"
             $mail.Body = $_bodyBase + "$_message`nSee below log data for more information. Scan Version: $version`n`n" + (Get-Content $DETECTIONFILE_PATH)
             $mail.Attachments = $DETECTIONFILE_PATH
             $mail.Priority = [System.Net.Mail.MailPriority]::High
@@ -171,7 +186,7 @@ function Send-Result {
     } elseif ($ResultCode -eq 5) { # Success, yara identified attacks in log files
             $_message = '! Evidence of one or more Log4Shell attack attempts has been found on the system.'
             Write-Host $_message -ForegroundColor Red
-            $mail.Subject = "Log4j FOUND: $serverdomain\$servername"
+            $mail.Subject = "Log4j FOUND: $_serverDomain\$_serverName"
             $mail.Body = $_bodyBase + "$_message`nReview the logfile below (copy also attached to email). Scan Version: $version`n`n" + (Get-Content $DETECTIONFILE_PATH)
             $mail.Attachments = $DETECTIONFILE_PATH
             $mail.Priority = [System.Net.Mail.MailPriority]::High
@@ -179,7 +194,7 @@ function Send-Result {
     } else { # General error, not caught. the default error. Explicitly set as 2
             $_message = 'An unknown error occurred and the script was not able to run correctly. Please see the Transcript or event log for more detail.'
             Write-Host $_message -ForegroundColor Red
-            $mail.Subject = "Log4j ERROR: $serverdomain\$servername"
+            $mail.Subject = "Log4j ERROR: $_serverDomain\$_serverName"
             $mail.Body = $_bodyBase + $_message + "`n`n"
             foreach ($e in $Error){ # Append all $Error values to the email body
                 $mail.Body += "`n-----------------------------------------------------------`n"
