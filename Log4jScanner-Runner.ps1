@@ -70,6 +70,8 @@ param (
     # Send an email even if the system comes back clean with no problems scanning. Will be 1:1 email per system.
     $SendOnSuccess = $false
 )
+# Force TLS 1.2 for downloading files
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 
 
 # Download the latest version of the script
 $rawScriptUri     = 'https://raw.githubusercontent.com/AshtonSolutions/log4j-ninja-scanner/main/Log4JScanner.ps1'
