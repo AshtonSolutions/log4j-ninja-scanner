@@ -152,6 +152,7 @@ Write-Host "`tSendOnSuccess: $SendOnSuccess"
 $ResultCode = 0
 
 function Send-Result {
+    Write-Host "Sending result. ResultCode is $ResultCode"
     $_serverName = Get-WmiObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty 'Name'
     $_serverDomain = Get-WmiObject -Class Win32_ComputerSystem | Select-Object -ExpandProperty 'Domain'
     $_bodyBase = "NAME: $_serverName`nDOMAIN: $_serverDomain`n`n"
@@ -211,7 +212,7 @@ function Send-Result {
 
     # Return data to RMM tool
     if ($NinjaProperty) {
-        try { Ninja-Property-Set log4jDetection $ninjaString }
+        try { Ninja-Property-Set $NinjaProperty $ninjaString }
         catch { Write-Host 'Unable to set Ninja Property' -ForegroundColor Red; $_exitCode = 1 }
     } else { Write-Host 'Ninja property not specified.' -ForegroundColor DarkBlue }
 
